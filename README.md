@@ -4,18 +4,13 @@ Kandidatprojekt vid Linköpings Universitet åt Karolinska Universitetssjukhuset
 
 ## Författare
 
-Philip Batan, Teamledare
-
-Marcus Hedquist, Kundansvarig
-
-Lucas Lindahl, Arkitekt
-
-Michael Werner, Dokumentansvarig
-
-Gustav Boberg, Testledare
-
-Gabriel Matsson, Kvalitetssamordnare
-
-William Janowsky, Utvecklingsledare
-
-Erik Luttu, Konfigurationsansvarig
+| Role | Name |
+| --- | --- |
+| Teamledare | Philip Batan |
+| Kundansvarig | Marcus Hedquist |
+| Arkitekt | Lucas Lindahl |
+| Dokumentansvarig | Michael Werner |
+| Testledare | Gustav Boberg |
+| Kvalitetssamordnare | Gabriel Matsson |
+| Utvecklingsledare | William Janowsky |
+| Konfigurationsansvarig | Erik Luttu |
