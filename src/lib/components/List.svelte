@@ -28,16 +28,7 @@
     $effect(() => {
       localSelectedDocument = props.selectedDocument || null;
     });
-    
-    const keyBy = $derived(props.keyBy || 'id');
-  
-    function getKey(item: Document): string {
-      if (typeof keyBy === 'function') {
-        const key = keyBy(item);
-        return `${item.unit}-${key}`;
-      }
-      return `${item.unit}-${item[keyBy]}`;
-    }
+      
   
     function formatDate(dateString: string): string {
       return new Date(dateString).toLocaleDateString('sv-SE');
@@ -87,27 +78,6 @@
       
       // Log for debugging
       console.log('Document clicked:', document.title, 'Event dispatched');
-    }
-  
-    // Add test helper if in development and in browser
-    if (import.meta.env.DEV && typeof window !== 'undefined') {
-      // Define the type for the test helper
-      interface TestWindow extends Window {
-        testApplyFilter: (filters: Record<string, string>) => Promise<void>;
-      }
-      
-      // Helper function to apply filters in tests
-      (window as unknown as TestWindow).testApplyFilter = async (filters: Record<string, string>) => {
-        const params = new URLSearchParams();
-        for (const [key, value] of Object.entries(filters)) {
-          if (value) params.set(key, value);
-        }
-        
-        const url = `http://localhost:3333/documents${params.toString() ? '?' + params.toString() : ''}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        localItems = data.documents;
-      };
     }
   </script>
   
