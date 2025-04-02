@@ -1,18 +1,20 @@
 <script lang="ts">
   import type { Document } from '$lib/types';
+  import { onMount, onDestroy } from 'svelte';
 
   const props = $props<{
     items?: Document[];
     keyBy?: string | ((item: Document) => string | number);
     selectedDocument?: Document | null;
-    onselect?: (document: Document, selectedDocs: Document[]) => void;
+    onselect?: (document: Document | null, selectedDocs: Document[]) => void;
   }>();
 
-  // Create mutable state for values that need to be updated
+  // Create states for values that need to be updated
   let localItems = $state<Document[]>([]);
   let localSelectedDocument = $state<Document | null>(null);
   let selectedDocuments = $state<Document[]>([]);
   let expandedUnits = $state<string[]>([]);
+  let listViewElement: HTMLElement;
   
   // Update local state when props change
   $effect(() => {
@@ -40,7 +42,7 @@
     return new Date(dateString).toLocaleDateString('sv-SE');
   }
 
-  // Group items by unit - make it a regular function for better control
+  // Group items by unit
   function getGroupedItems() {
     const groups: Record<string, Array<Document & { uniqueId: string }>> = {};
     let counter = 0;
@@ -76,6 +78,9 @@
   }
 
   function handleDocumentClick(document: Document, event: MouseEvent) {
+    // Prevent the click from bubbling up to the window click handler
+    event.stopPropagation();
+    
     const ctrlOrCmdPressed = event.ctrlKey || event.metaKey;
     
     if (ctrlOrCmdPressed) {
@@ -94,13 +99,20 @@
         localSelectedDocument = document; // Most recently selected
       }
     } else {
-      // If Ctrl/Cmd is not pressed, normal single selection
-      selectedDocuments = [document];
-      localSelectedDocument = document;
+      // If Ctrl/Cmd is not pressed:
+      // If clicking the only selected document, deselect it
+      if (selectedDocuments.length === 1 && selectedDocuments[0].id === document.id) {
+        selectedDocuments = [];
+        localSelectedDocument = null;
+      } else {
+        // Otherwise, do normal single selection
+        selectedDocuments = [document];
+        localSelectedDocument = document;
+      }
     }
     
     // Call the onselect handler if provided
-    if (props.onselect && localSelectedDocument) {
+    if (props.onselect) {
       props.onselect(localSelectedDocument, selectedDocuments);
     }
     
@@ -108,10 +120,10 @@
     console.log('Document clicked:', document.title, 'Ctrl/Cmd:', ctrlOrCmdPressed, 'Selected documents:', selectedDocuments.length);
   }
 
-  // Handle clicks outside document buttons to deselect everything
+  // Handle clicks outside the list-view component
   function handleOutsideClick(event: MouseEvent) {
-    // Only process if clicking directly on the list-view, not its children
-    if (event.target === event.currentTarget) {
+    // Check if the click was outside the list-view component
+    if (listViewElement && !listViewElement.contains(event.target as Node)) {
       selectedDocuments = [];
       localSelectedDocument = null;
       
@@ -120,12 +132,25 @@
         props.onselect(null, []);
       }
       
-      console.log('Clicked outside, cleared selection');
+      console.log('Clicked outside list-view, cleared selection');
     }
   }
+
+  // Set up and clean up click listener
+  onMount(() => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('click', handleOutsideClick);
+    }
+  });
+
+  onDestroy(() => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('click', handleOutsideClick);
+    }
+  });
 </script>
 
-<ul class="list-view" onclick={handleOutsideClick}>
+<ul class="list-view" bind:this={listViewElement}>
   {#each Object.entries(groupedItems) as [unit, unitItems] (unit)}
     <li class="unit-group">
       <button 
